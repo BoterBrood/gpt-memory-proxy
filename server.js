@@ -1,32 +1,35 @@
 const express = require('express');
 const axios = require('axios');
+const bodyParser = require('body-parser');
 const app = express();
+const PORT = process.env.PORT || 3000;
 
-const GOOGLE_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw9E2jYaxdWpesvcpaB4bq5W68yO4txuQR0GHRr9-aTQ0HOxv9NbzlZJE8gclHKM8K3/exec';
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw9E2jYaxdWpesvcpaB4bq5W68yO4txuQR0GHRr9-aTQ0HOxv9NbzlZJE8gclHKM8K3/exec';
 
-app.use(express.json());
+app.use(bodyParser.json());
 
-app.post('/', async (req, res) => {
+app.post('/retrieve', async (req, res) => {
   try {
-    const response = await axios.post(GOOGLE_APPS_SCRIPT_URL, req.body, {
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    });
-    res.status(response.status).send(response.data);
-  } catch (err) {
-    res.status(err.response?.status || 500).send({
-      error: 'Proxy error',
-      details: err.message
-    });
+    const response = await axios.post(`${GOOGLE_SCRIPT_URL}?path=retrieve`, req.body);
+    res.status(200).send(response.data);
+  } catch (error) {
+    res.status(500).send({ error: error.message });
+  }
+});
+
+app.post('/save', async (req, res) => {
+  try {
+    const response = await axios.post(`${GOOGLE_SCRIPT_URL}?path=save`, req.body);
+    res.status(200).send(response.data);
+  } catch (error) {
+    res.status(500).send({ error: error.message });
   }
 });
 
 app.get('/', (req, res) => {
-  res.send('GPT Memory Proxy is running.');
+  res.send('Memory proxy is running');
 });
 
-const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`Proxy listening on port ${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });
